@@ -5,7 +5,8 @@
 --counted the occurrences of each product in these orders to determine the 
 --number of times it appeared in successfully checked out carts.
 
-
+---The most ordered item based on the number of times it appears in an order cart that checked out successfully is Apple Airpod Pro with 735 number of 
+--times it was successfully ordered and having a product_id 7, here is the query below:
 SELECT
     p.id AS product_id,
     p.name AS product_name,
@@ -32,6 +33,17 @@ LIMIT 1;
 --I sum up the prices of products in each order for each customer using the SUM function.
 --The results are ordered by total_spend in descending order to identify the top spenders.
 --Finally, I limit the result to the top 5 spenders using the LIMIT clause.
+
+--- Without considering currency, and without using the line_item table, the top 5 spenders are:
+
+--customer_id                                       location                        total_spend
+--90e76254-adc5-4b89-9c3b-c23fd5a60df7               Korea                          10,329.85
+--e97382ec-b866-46e2-8bdd-a09e07e808b6              Slovakia (Slovak Republic)      10,279.84
+--ad6baabf-8862-47af-ab08-76f1abfef341              Trinidad and Tobago             10,185.89
+--b63b12c1-1241-4d5d-aa74-5a188eabb76e              Moldova                         10,185.89
+--2977ee07-be3a-47da-8066-2ba9d3b88f04              Gibraltar                       10,162.84
+
+--Below is the query:
 
 SELECT
     c.customer_id,
@@ -60,7 +72,7 @@ LIMIT 5;
 -- I ordered the results by the count of successful checkouts in descending order.
 -- I limited the output to the top location with the highest number of successful checkouts.
 
--- The asnwer I got is Korea, which has 17 checkouts
+-- The asnwer I got is Korea, which has 17 checkouts, check the query below:
 
 SELECT
     c.location,
@@ -83,9 +95,11 @@ LIMIT 1;
 --I joined the EVENTS table (e) with the abandoned_carts CTE (ac) based on customer_id.
 --I Filtered out events that are visits or checkouts, as these are not relevant to abandoned carts.
 --I used a subquery with NOT EXISTS to exclude events that occurred after a successful checkout. 
---For each event in the main query, it checks if there exists another event (e2) for the same customer with a status of 'success' and a later timestamp. If such an event exists, it means the event occurred after a successful checkout, and it is excluded.
+--For each event in the main query, it checks if there exists another event (e2) for the same customer with a status of 'success' 
+--and a later timestamp. If such an event exists, it means the event occurred after a successful checkout, and it is excluded.
 --I used the results by customer_id and counts the number of events for each customer.
 --Finally, the main query selects customer_id and num_events from the events_before_abandonment CTE, which contains the count of events before abandonment for each customer.
+
 WITH abandoned_carts AS (
     SELECT DISTINCT customer_id
     FROM ALT_SCHOOL.EVENTS
@@ -100,15 +114,15 @@ events_before_abandonment AS (
     JOIN
         abandoned_carts ac ON e.customer_id = ac.customer_id
     WHERE
-        e.event_data ->> 'event_type' != 'visit' -- Exclude visits
-        AND e.event_data ->> 'event_type' != 'checkout' -- Exclude checkouts
+        e.event_data ->> 'event_type' != 'visit' 
+        AND e.event_data ->> 'event_type' != 'checkout' 
         AND NOT EXISTS (
             SELECT 1
             FROM ALT_SCHOOL.EVENTS e2
             WHERE e2.customer_id = e.customer_id
             AND e2.event_data ->> 'status' = 'success'
             AND e2.event_timestamp > e.event_timestamp
-        ) -- Exclude events after successful checkout
+        ) 
     GROUP BY
         e.customer_id
 )
@@ -136,6 +150,8 @@ FROM
 
 --The query efficiently calculates the average number of visits per customer, considering only customers who completed a checkout. The result is returned as average_visits 
 --rounded to 2 decimal places. Please execute this query and let me know if it provides the desired result!
+
+--Here is the query below
 WITH completed_checkouts AS (
     SELECT DISTINCT customer_id
     FROM ALT_SCHOOL.EVENTS
